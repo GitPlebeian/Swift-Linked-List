@@ -1,6 +1,7 @@
 import UIKit
 
 class LinkedListNode<T> {
+    
     var value: T
     var next: LinkedListNode<T>?
     weak var prev: LinkedListNode<T>?
@@ -37,6 +38,18 @@ class LinkedList<T> {
         return atIndex(at: index).value
     }
     
+    // Append
+    func append(_ value: T) {
+        let node = Node(value)
+        tail?.next = node
+        node.prev = tail
+        tail = node
+        if head == nil {
+            head = node
+        }
+        internalCount += 1
+    }
+    
     // At Index
     func atIndex(at index: Int) -> Node {
         var node = head
@@ -49,22 +62,8 @@ class LinkedList<T> {
         return node!
     }
     
-    // Append
-    func append(_ value: T) {
-        let node = Node(value)
-        if let tail = tail {
-            tail.next = node
-            node.prev = tail
-            self.tail = node
-        } else {
-            head = node
-            tail = node
-        }
-        internalCount += 1
-    }
-    
     // Insert
-    func insert(_ value: T, at index: Int) {
+    func insert(value: T, at index: Int) {
         let node = Node(value)
         if index == 0 {
             head?.prev = node
@@ -73,10 +72,10 @@ class LinkedList<T> {
         } else {
             let prev = atIndex(at: index - 1)
             let next = prev.next
+            node.prev = prev
+            node.next = next
             prev.next = node
             next?.prev = node
-            node.next = next
-            node.prev = prev
         }
         if node.next == nil {
             tail = node
@@ -91,92 +90,92 @@ class LinkedList<T> {
         internalCount = 0
     }
     
+    // Remove Last
+    func removeLast() -> T {
+        return removeNode(node: last!)
+    }
+    
+    // Remove At
+    func removeAt(at index: Int) -> T {
+        return removeNode(node: atIndex(at: index))
+    }
+    
     // Remove Node
-    func remove(node: Node) -> T {
-        let next = node.next
+    func removeNode(node: Node) -> T {
         let prev = node.prev
-        if let next = next {
-            next.prev = prev
-        } else {
-            tail = prev
-        }
+        let next = node.next
         if let prev = prev {
             prev.next = next
         } else {
             head = next
         }
-        internalCount -= 1
+        if let next = next {
+            next.prev = prev
+        } else {
+            tail = prev
+        }
         node.next = nil
         node.prev = nil
+        internalCount -= 1
         return node.value
     }
     
-    // Remove At
-    func remove(at index: Int) -> T {
-        return remove(node: atIndex(at: index))
-    }
-    
-    // Remove Last
-    func removeLast() -> T {
-        return remove(node: tail!)
+    // Reverse
+    func reverse() {
+        var node = head
+        tail = node
+        while let currentNode = node {
+            node = currentNode.next
+            swap(&currentNode.next, &currentNode.prev)
+            head = currentNode
+        }
     }
     
     // Map
     func map<U>(transform: (T) -> U) -> LinkedList<U> {
-        let result = LinkedList<U>()
-        var node = head
-        while let currentNode = node {
-            result.append(transform(currentNode.value))
-            node = currentNode.next
+        let linkedList = LinkedList<U>()
+        var currentNode = head
+        while let node = currentNode {
+            linkedList.append(transform(node.value))
+            currentNode = node.next
         }
-        return result
+        return linkedList
     }
     
     // Filter
     func filter(predicate: (T) -> Bool) -> LinkedList<T> {
-        let result = LinkedList<T>()
-        var node = head
-        while let currentNode = node {
-            if predicate(currentNode.value) {
-                result.append(currentNode.value)
+        let linkedList = LinkedList<T>()
+        var currentNode = head
+        while let node = currentNode {
+            if predicate(node.value) {
+                linkedList.append(node.value)
             }
-            node = currentNode.next
+            currentNode = node.next
         }
-        return result
+        return linkedList
     }
     
     // Print
     func print() {
-        guard var node = head else {return}
-        Swift.print("\n\nHead: \(String(describing: head?.value))")
-        Swift.print("Tail: \(String(describing: tail?.value))")
-        Swift.print("\nValue: \(node.value)")
-        Swift.print("Next: \(String(describing: node.next?.value))")
-        Swift.print("Previous: \(String(describing: node.prev?.value))")
-        while let next = node.next {
-            node = next
-            Swift.print("\nValue: \(node.value)")
+        Swift.print("Head: \(String(describing: head?.value))")
+        Swift.print("Tail: \(String(describing: tail?.value))\n")
+        
+        var currentNode = head
+        while let node = currentNode {
+            Swift.print("Value: \(node.value)")
             Swift.print("Next: \(String(describing: node.next?.value))")
-            Swift.print("Previous: \(String(describing: node.prev?.value))")
+            Swift.print("Prev: \(String(describing: node.prev?.value))\n")
+            currentNode = node.next
         }
     }
 }
 
 let list = LinkedList<Int>()
-list.append(0)
 list.append(1)
 list.append(2)
 list.append(3)
 list.append(4)
-list.append(5)
-list.append(6)
-list.append(7)
-list.append(8)
-list.append(9)
-list.append(10)
 
-let newList = list.filter {$0 % 2 == 1}
-newList.print()
+list.reverse()
 
-
-
+list.print()
